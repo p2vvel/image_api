@@ -15,11 +15,16 @@ Including another URLconf
 """
 from django.urls import path
 from rest_framework import routers
-from .views import ImageViewset
+from .views import ImageViewset, get_binary_image, get_image
 
 
 
 router = routers.SimpleRouter()
 router.register(r'', ImageViewset)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("images/<path:image_path>", get_image),
+    path("images/<str:user_uuid>/<str:image_name>/binary/", get_binary_image),
+]
+
+urlpatterns += router.urls

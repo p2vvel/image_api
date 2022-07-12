@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
+    'django_sendfile',
 ]
 
 MIDDLEWARE = [
@@ -132,5 +133,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # custom user model containg info about active tier
 AUTH_USER_MODEL = "api.User"
 
+# necessary for uploading files and showing right media links
 MEDIA_ROOT = BASE_DIR / "images/"
 MEDIA_URL = "images/"
+
+
+# X-SendFile config
+# SENDFILE_BACKEND = "django_sendfile.backends.nginx"
+SENDFILE_BACKEND = "django_sendfile.backends.development"
+SENDFILE_ROOT = BASE_DIR / "images/"
+# SENDFILE_URL = "images/"

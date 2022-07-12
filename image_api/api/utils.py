@@ -6,7 +6,6 @@ from pathlib import Path
 
 
 
-
 def resize_image(img: Image, height: int) -> Image:
     '''Returns resized image with given height, saves original aspect ratio'''
     aspect_ratio = img.width/img.height
