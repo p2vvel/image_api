@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -128,4 +129,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# custom user model containg info about active tier
 AUTH_USER_MODEL = "api.User"
+
+MEDIA_ROOT = BASE_DIR / "images/"
+MEDIA_URL = "images/"

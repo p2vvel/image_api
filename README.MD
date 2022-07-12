@@ -47,8 +47,7 @@ A short README written in English that explains how to set up the project,
 The time it took you to perform the task,
 
 Bonus for:
-
-git repository
-live preview
+* git repository
+* live preview
 
 Feel free to contact us if you have any questions!
