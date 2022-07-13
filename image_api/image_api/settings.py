@@ -143,3 +143,10 @@ MEDIA_URL = "images/"
 SENDFILE_BACKEND = "django_sendfile.backends.development"
 SENDFILE_ROOT = BASE_DIR / "images/"
 # SENDFILE_URL = "images/"
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379',
+    }
+}

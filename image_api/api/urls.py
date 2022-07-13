@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.urls import path
 from rest_framework import routers
-from .views import ImageViewset, get_binary_image, get_image
+from .views import ImageViewset, get_binary_image, get_image, generate_binary_link
 
 
 
@@ -23,8 +23,11 @@ router = routers.SimpleRouter()
 router.register(r'', ImageViewset)
 
 urlpatterns = [
-    path("images/<path:image_path>", get_image),
-    path("images/<str:user_uuid>/<str:image_name>/binary/", get_binary_image),
+    path("images/<path:image_path>", get_image, "get_image"),
+    path("binary/<path:image_path>", get_binary_image, "get_binary_image"),
+    path("generate/<path:image_path>", generate_binary_link, "generate_binary_link"),
+    # path("generate/<path:image_path>", generate_binary_link),
+
 ]
 
 urlpatterns += router.urls

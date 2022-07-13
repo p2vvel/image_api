@@ -14,6 +14,11 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import decorators
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from django.core.cache import cache
+from uuid import uuid4
+
+from rest_framework.reverse import reverse
 
 
 
@@ -75,26 +80,50 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
 
 @decorators.api_view(["GET"])
 @decorators.permission_classes([IsAuthenticated])
-def get_binary_image(request, user_uuid: str, image_name: str):
-    image_object = UploadedImage.objects.get(image=f"{user_uuid}/{image_name}")
-    
-    img = Image.open(image_object.image)
-    img_format = img.format
-    
-    img = img.convert('1')  # convert photo to binary: https://en.wikipedia.org/wiki/Binary_image
-    buffer = BytesIO()
-    img.save(buffer, format=img_format)     # save image to buffer
-    mime_type = "image/png" if img_format == "PNG" else "image/jpeg"    # choose correct mimetype (only two available due to limited image formats)
+def get_image(request, image_path: str):
+    """
+    Serve media files (photos) using X-SendFile, allows to limit access to 
+    resources and still benefit from external server performance (e.g. nginx)
+    """
+    image_object = get_object_or_404(UploadedImage, image=image_path)
+    # only owner can access photo
+    if image_object.owner == request.user:
+        return sendfile(request, image_path, attachment=False, mimetype="image/jpeg")
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
 
-    return Response(buffer.getvalue(), content_type=mime_type)      # send photo as binary data in http response
+
+@decorators.api_view(["GET"])
+@decorators.permission_classes([IsAuthenticated])
+def generate_binary_link(request, image_path: str):
+    """
+    Generate link to binary version of the image
+    """
+    timeout = request.GET.get("timeout", 30)    # time to link expiration
+    image_object = get_object_or_404(UploadedImage, image=image_path)
+    if image_object.owner == request.user:
+        token = str(uuid4())
+        cache.set(token, image_path, timeout)
+        return Response({"binary_image": reverse("get_binary_image", args=(token,))})
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
 
 
 
 @decorators.api_view(["GET"])
 @decorators.permission_classes([IsAuthenticated])
-def get_image(request, image_path: str):
-    img = UploadedImage.objects.get(image=image_path)
-    if img.owner == request.user:
-        return sendfile(request, image_path, attachment=False, mimetype="image/jpeg")
+def get_binary_image(request, image_path: str):
+    image_object = get_object_or_404(UploadedImage, image=image_path)
+    # only owner can access photo
+    if image_object.owner == request.user:
+        img = Image.open(image_object.image)
+        img_format = img.format
+        
+        img = img.convert('1')  # convert photo to binary: https://en.wikipedia.org/wiki/Binary_image
+        buffer = BytesIO()
+        img.save(buffer, format=img_format)     # save image to buffer
+        mime_type = "image/png" if img_format == "PNG" else "image/jpeg"    # choose correct mimetype (only two available due to limited image formats)
+
+        return HttpResponse(buffer.getvalue(), content_type=mime_type)      # send photo as binary data in http response, using Response() caused errors with encoding(?)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
