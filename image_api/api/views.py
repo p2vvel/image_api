@@ -56,7 +56,7 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
                 owner = original_image.owner,
                 title = original_image.title,
                 parent=original_image
-            )
+                )
 
         return original_image
 
