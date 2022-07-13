@@ -1,9 +1,8 @@
-
 from api.models import UploadedImage
 from api.serializers import ImageSerializer, ImageSerializerCreate
 from api.utils import get_resized_image
 from rest_framework import mixins, permissions, viewsets
-
+from rest_framework.response import Response
 
 class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]      # allow only logged users to use the API
@@ -56,3 +55,16 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
             return ImageSerializerCreate
         else:
             return ImageSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Overriden to provide the same data representation on create, 
+        as it is normally on list and retrieve
+
+        Source: https://stackoverflow.com/a/56439689
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = self.perform_create(serializer)
+        instance_serializer = ImageSerializer(instance)
+        return Response(instance_serializer.data)
