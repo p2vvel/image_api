@@ -23,9 +23,9 @@ router = routers.SimpleRouter()
 router.register(r'', ImageViewset)
 
 urlpatterns = [
-    path("images/<path:image_path>", get_image, "get_image"),
-    path("binary/<path:image_path>", get_binary_image, "get_binary_image"),
-    path("generate/<path:image_path>", generate_binary_link, "generate_binary_link"),
+    path("images/<path:image_path>", get_image, name="get_image"),
+    path("binary/<str:token>", get_binary_image, name="get_binary_image"),
+    path("generate/<path:image_path>", generate_binary_link, name="generate_binary_link"),
     # path("generate/<path:image_path>", generate_binary_link),
 
 ]
