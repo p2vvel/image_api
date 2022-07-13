@@ -138,11 +138,11 @@ MEDIA_ROOT = BASE_DIR / "images/"
 MEDIA_URL = "images/"
 
 
-# X-SendFile config
+# X-SendFile config:
 # SENDFILE_BACKEND = "django_sendfile.backends.nginx"
 SENDFILE_BACKEND = "django_sendfile.backends.development"
-SENDFILE_ROOT = BASE_DIR / "images/"
-# SENDFILE_URL = "images/"
+SENDFILE_ROOT = MEDIA_ROOT
+# SENDFILE_URL = MEDIA_URL
 
 CACHES = {
     'default': {

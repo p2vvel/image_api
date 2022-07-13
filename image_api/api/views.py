@@ -9,8 +9,7 @@ from PIL import Image
 from rest_framework import decorators, mixins, permissions, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-# from rest_framework.reverse import 
-from django.urls import reverse
+from rest_framework.reverse import reverse
 
 from .models import UploadedImage
 from .permissions import CheckBinaryPermission, CheckImagePermission
@@ -28,7 +27,7 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         Filter images to show only owned by the current user
         """
         queryset = super().get_queryset()
-        return queryset.filter(owner = self.request.user)
+        return queryset.filter(owner = self.request.user, parent=None)
     
     def perform_create(self, serializer):
         """
