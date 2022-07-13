@@ -27,7 +27,7 @@ class Tier(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)        # tier name
     binary_image = models.BooleanField(default=False, null=False)           # is binary image available?
     original_image = models.BooleanField(default=False, null=False)         # is original image available?
-    available_heights = models.ManyToManyField(to=AvailableHeight)          # available image heights (different idea => ArrayField => worse portability(only Postgres))
+    available_heights = models.ManyToManyField(to=AvailableHeight, blank=True)          # available image heights (different idea => ArrayField => worse portability(only Postgres))
 
     def __str__(self) -> str:
         return f"'{self.name}' tier"
@@ -78,8 +78,6 @@ class User(AbstractUser):
 
         return super().save(*args, **kwargs)
 
-        
-        
 
 
 class UploadedImage(models.Model):
