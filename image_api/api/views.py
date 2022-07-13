@@ -1,25 +1,21 @@
 from io import BytesIO
-
-from django.core.files.base import File
-from django.http import HttpResponse
-from PIL import Image
-from rest_framework import mixins, permissions, viewsets
-
-from .models import UploadedImage
-from .serializers import ImageSerializer, ImageSerializerCreate
-from .utils import get_resized_image
-from django_sendfile import sendfile
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework import decorators
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from django.core.cache import cache
 from uuid import uuid4
 
-from rest_framework.reverse import reverse
+from django.conf import settings
+from django.core.cache import cache
+from django.http import HttpResponse
+from django_sendfile import sendfile
+from PIL import Image
+from rest_framework import decorators, mixins, permissions, status, viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+# from rest_framework.reverse import 
+from django.urls import reverse
 
+from .models import UploadedImage
+from .permissions import CheckBinaryPermission, CheckImagePermission
+from .serializers import ImageSerializer, ImageSerializerCreate
+from .utils import get_resized_image
 
 
 class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -43,8 +39,6 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
                             owner=self.request.user, 
                             title=self.request.FILES.get("image").name
                             ) # adding owner and title info to images
-
-        user_tier = original_image.owner.tier
         
         # Basic tier - always create 200px thumbnail
         UploadedImage.objects.create(
@@ -54,9 +48,9 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
             parent=original_image
         )
 
-        if user_tier is not None:
+        if original_image.owner.tier is not None:
             # custom tier - create all thumbnails
-            thumbnail_sizes = list(user_tier.available_heights.all().values_list("height", flat=True))
+            thumbnail_sizes = original_image.owner.tier.extra_image_sizes
             for size in thumbnail_sizes:
                 UploadedImage.objects.create(
                 image=get_resized_image(original_image.image, size),
@@ -79,58 +73,50 @@ class ImageViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
 
 
 @decorators.api_view(["GET"])
-@decorators.permission_classes([IsAuthenticated])
+@decorators.permission_classes([IsAuthenticated, CheckImagePermission])
 def get_image(request, image_path: str):
     """
     Serve media files (photos) using X-SendFile, allows to limit access to 
     resources and still benefit from external server performance (e.g. nginx)
     """
-    image_object = get_object_or_404(UploadedImage, image=image_path)
-    # only owner can access photo
-    if image_object.owner == request.user:
-        return sendfile(request, image_path, attachment=False, mimetype="image/jpeg")
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
+    return sendfile(request, image_path, attachment=False, mimetype="image/jpeg")
+
 
 
 @decorators.api_view(["GET"])
-@decorators.permission_classes([IsAuthenticated])
+@decorators.permission_classes([IsAuthenticated, CheckImagePermission, CheckBinaryPermission])
 def generate_binary_link(request, image_path: str):
     """
     Generate link to binary version of the image
     """
     timeout = request.GET.get("timeout", 30)    # time to link expiration
-    image_object = get_object_or_404(UploadedImage, image=image_path)
-    if image_object.owner == request.user:
-        token = str(uuid4())
-        cache.set(token, image_path, timeout)
-        return Response({
-            "binary_image": reverse("get_binary_image", args=(token,)),
-            "timeout": timeout,
-            })
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
 
+    token = str(uuid4())
+    cache.set(token, image_path, timeout)
+    return Response({
+        "binary_image": reverse("get_binary_image", args=(token,)),
+        "timeout": timeout,
+        })
 
 
 @decorators.api_view(["GET"])
-@decorators.permission_classes([IsAuthenticated])
+@decorators.permission_classes([IsAuthenticated, CheckBinaryPermission])
 def get_binary_image(request, token: str):
     image_path = cache.get(token)
     if image_path:
-        image_object = get_object_or_404(UploadedImage, image=image_path)
-        # only owner can access photo
-        if image_object.owner == request.user:
-            img = Image.open(image_object.image)
-            img_format = img.format
-            
-            img = img.convert('1')  # convert photo to binary: https://en.wikipedia.org/wiki/Binary_image
-            buffer = BytesIO()
-            img.save(buffer, format=img_format)     # save image to buffer
-            mime_type = "image/png" if img_format == "PNG" else "image/jpeg"    # choose correct mimetype (only two available due to limited image formats)
-
-            return HttpResponse(buffer.getvalue(), content_type=mime_type)      # send photo as binary data in http response, using Response() caused errors with encoding(?)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
+        return generate_binary_image(request, image_path)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)  # nothing to see here
+
+
+@decorators.permission_classes([IsAuthenticated, CheckImagePermission, CheckBinaryPermission])
+def generate_binary_image(request, image_path: str):
+    img = Image.open(settings.MEDIA_ROOT / image_path)  # open image
+    img_format = img.format
+    
+    img = img.convert('1')  # convert photo to binary: https://en.wikipedia.org/wiki/Binary_image
+    buffer = BytesIO()
+    img.save(buffer, format=img_format)     # save image to buffer
+    mime_type = "image/png" if img_format == "PNG" else "image/jpeg"    # choose correct mimetype (only two available due to limited image formats)
+
+    return HttpResponse(buffer.getvalue(), content_type=mime_type)      # send photo as binary data in http response, using Response() caused errors with encoding(?)

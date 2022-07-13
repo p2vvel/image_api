@@ -31,6 +31,15 @@ class Tier(models.Model):
     def __str__(self) -> str:
         return f"'{self.name}' tier"
 
+    @property
+    def extra_image_sizes(self) -> list[int]:
+        """
+        Returns list of available image height (in active tier), 
+        200px is not included as it is always available in Basic Tier
+        """
+        query = self.available_heights.all().values_list("height", flat=True)
+        return list(query)
+
 
 class User(AbstractUser):
     tier = models.ForeignKey(to=Tier, default=None, null=True, blank=True, on_delete=models.SET_NULL)   # null = basic tier
@@ -56,8 +65,8 @@ class UploadedImage(models.Model):
         return super().delete(*args, **kwargs)
 
 
-    image = models.ImageField(upload_to=upload_to)
+    image = models.ImageField(upload_to=upload_to, height_field="height")
     title = models.TextField(null=False, blank=False)
     owner = models.ForeignKey(to=User, on_delete=models.CASCADE)        # user that uploaded image
     parent = models.ForeignKey("self", default=None, null=True, blank=True, on_delete=models.CASCADE)   # null = original picture
-
+    height = models.IntegerField(default=0)     # automatically filled

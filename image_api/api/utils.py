@@ -15,7 +15,7 @@ def resize_image(img: Image, height: int) -> Image:
 
 def get_resized_image(image: ImageField, height: int) -> File:
     '''Returns file containing resized image'''
-    img = Image.open(image)
+    img = Image.open(image.path)
     buffer = BytesIO()
 
     new_image = resize_image(img, height)
