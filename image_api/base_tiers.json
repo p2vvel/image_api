@@ -1,0 +1,33 @@
+[
+    {
+        "model": "api.availableheight",
+        "pk": 1,
+        "fields": {
+            "height": 400
+        }
+    },
+    {
+        "model": "api.tier",
+        "pk": 1,
+        "fields": {
+            "name": "Premium",
+            "binary_image": false,
+            "original_image": true,
+            "available_heights": [
+                1
+            ]
+        }
+    },
+    {
+        "model": "api.tier",
+        "pk": 2,
+        "fields": {
+            "name": "Enterprise",
+            "binary_image": true,
+            "original_image": true,
+            "available_heights": [
+                1
+            ]
+        }
+    }
+]
