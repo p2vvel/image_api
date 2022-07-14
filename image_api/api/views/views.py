@@ -17,10 +17,6 @@ from rest_framework.reverse import reverse
 @decorators.api_view(["GET"])
 @decorators.permission_classes([IsAuthenticated, CheckImagePermission])
 def get_image(request, image_path: str):
-    """
-    Serve media files (photos) using X-SendFile, allows to limit access to 
-    resources and still benefit from external server performance (e.g. nginx)
-    """
     return sendfile(request, image_path, attachment=False, mimetype="image/jpeg")
 
 

@@ -13,6 +13,9 @@ class CheckImagePermission(permissions.BasePermission):
     Not for later use, based on views' arguments!
     """
     def has_permission(self, request, view):
+        if request.user and request.user.is_staff:       # admins have rights to see everything
+            return True
+
         image_path = view.kwargs.get("image_path")  # 
         if not image_path:
             return False        # if there's no argument 'image_path', deny access
@@ -41,6 +44,9 @@ class CheckBinaryPermission(permissions.BasePermission):
     Check if user has permission to generate and view binary images
     """
     def has_permission(self, request, view):
+        if request.user and request.user.is_staff:       # admins have rights to see everything
+            return True
+
         if request.user.tier:
             return request.user.tier.binary_image
         else:
