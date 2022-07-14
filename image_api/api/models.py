@@ -41,11 +41,38 @@ class Tier(models.Model):
         query = self.available_heights.all().values_list("height", flat=True)
         return list(query)
 
+    # def save(self, *args, **kwargs) -> None:
+    #     """
+    #     Overriden to generate thumbnails when tier is extended
+    #     """
+    #     # if saving existing object
+    #     if not self._state.adding:
+    #         # compare current resolutions with old ones (still stored in db)
+    #         old_data = Tier.objects.get(pk=self.pk)
+
+    #         new_res = set(self.extra_image_sizes)              # currently available resolutions
+    #         old_res = set(old_data.extra_image_sizes)        # previously available resolutions
+    #         if new_res != old_res:
+    #             unavailable_res = new_res.difference(old_res)
+    #             for res in unavailable_res:
+    #                 images = self.uploadedimage_set.filter(parent=None)     # all original images
+    #                 for img in images:
+    #                     # check if image has thumbnail with requested size (maybe user returned to previous tier and file already exists)
+    #                     if res not in img.uploadedimage_set.all().values_list("height", flat=True):
+    #                         UploadedImage.objects.create(
+    #                             image = get_resized_image(img.image, res),
+    #                             owner = img.owner,
+    #                             title = img.title,
+    #                             parent = img,
+    #                         )
+
+    #     return super().save(*args, **kwargs)
+
+
 
 class User(AbstractUser):
     tier = models.ForeignKey(to=Tier, default=None, null=True, blank=True, on_delete=models.SET_NULL)   # null = basic tier
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, null=False)
-
 
     def save(self, *args, **kwargs) -> None:
         """
@@ -65,7 +92,6 @@ class User(AbstractUser):
                     unavailable_res = new_res.difference(old_res)
                     for res in unavailable_res:
                         images = self.uploadedimage_set.filter(parent=None)     # all original images
-                        # TODO: check if image size doesnt exist!
                         for img in images:
                             # check if image has thumbnail with requested size (maybe user returned to previous tier and file already exists)
                             if res not in img.uploadedimage_set.all().values_list("height", flat=True):

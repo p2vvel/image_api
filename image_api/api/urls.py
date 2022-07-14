@@ -5,7 +5,7 @@ from .views import ImageViewset, get_binary_image, get_image, generate_binary_li
 
 
 router = routers.SimpleRouter()
-router.register(r'', ImageViewset)
+router.register(r'', ImageViewset, basename="images")
 
 urlpatterns = [
     path("images/<path:image_path>", get_image, name="get_image"),
