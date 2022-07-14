@@ -30,7 +30,7 @@ class Tier(models.Model):
     available_heights = models.ManyToManyField(to=AvailableHeight, blank=True)          # available image heights (different idea => ArrayField => worse portability(only Postgres))
 
     def __str__(self) -> str:
-        return f"'{self.name}' tier"
+        return f"{self.name}"
 
     @property
     def extra_image_sizes(self) -> list[int]:
