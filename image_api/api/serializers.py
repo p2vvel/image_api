@@ -14,6 +14,9 @@ class ImageSerializerCreate(serializers.ModelSerializer):
         fields = ["image"]
 
     def validate_image(self, value):
+        """
+        Image must be in PNG or JPEG format
+        """
         try:
             img = Image.open(value)
         except UnidentifiedImageError:
@@ -43,6 +46,12 @@ class ImageSerializer(serializers.ModelSerializer):
         return reverse("get_image", args=(image.name,))
 
     def get_resolution_representation(self, image: ImageField, binary: bool) -> dict:
+        """
+        For given image return dict in format {
+            "url": <url_to_image>, 
+            "binary": <url_to_generate_binary_image>,   <== *optional 
+            }
+        """
         temp = {}
 
         temp["url"] = self.get_full_image_address(image.image)
@@ -52,7 +61,10 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)  # default json return
+        """
+        Add links to all available for user resolutions
+        """
+        data = super().to_representation(instance)  # default returned json
         resolutions = {}
 
         binary_image = False if instance.owner.tier is None else instance.owner.tier.binary_image

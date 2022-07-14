@@ -31,6 +31,11 @@ def generate_binary_link(request, image_path: str):
     Generate link to binary version of the image
     """
     timeout = request.GET.get("timeout", 30)    # time to link expiration
+    if not (300 <= timeout <= 3000):
+        if timeout < 300:
+            timeout = 300       # mininmal timeout is 300s
+        else:
+            timeout = 3000      # maximum timeout is 3000s
 
     token = str(uuid4())
     cache.set(token, image_path, timeout)

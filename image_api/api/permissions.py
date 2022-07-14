@@ -1,16 +1,16 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions
 
 from .models import UploadedImage
-from django.shortcuts import get_object_or_404
 
 
 
 class CheckImagePermission(permissions.BasePermission):
     """
-    Check if user is owner of the image,
+    Check if user is owner of the image and
     check if user has rights to see requested image size
 
-    Not for later use, based on view arguments!
+    Not for later use, based on views' arguments!
     """
     def has_permission(self, request, view):
         image_path = view.kwargs.get("image_path")  # 
@@ -21,8 +21,8 @@ class CheckImagePermission(permissions.BasePermission):
 
         # check if user is an owner of the photo
         if image_object.owner == request.user:
-            if image_object.height == 200:
-                return True     # 200px thumbnails are always available
+            # 200px thumbnails are always available:
+            if image_object.height == 200: return True     
             
             user_tier = request.user.tier
             if user_tier:
@@ -32,16 +32,13 @@ class CheckImagePermission(permissions.BasePermission):
                 else:
                     # different sizes has to be checked
                     return image_object.height in user_tier.extra_image_sizes   # access depends on tier
-            else:
-                return False
-        else:
-            # user is not an owner
-            return False
+
+        return False    # deny access if it hasn't been already given
             
 
 class CheckBinaryPermission(permissions.BasePermission):
     """
-    Check if user has permission to generate and view binary image
+    Check if user has permission to generate and view binary images
     """
     def has_permission(self, request, view):
         if request.user.tier:

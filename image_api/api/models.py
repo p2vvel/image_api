@@ -16,11 +16,11 @@ class AvailableHeight(models.Model):
         """
         if value == 200:
             raise ValidationError("Height already available!")
-
-    height = models.IntegerField(validators=[MinValueValidator(10), deny_base_height], unique=True)      # available height of the image, minimum height is 10px
     
     def __str__(self) -> str:
         return f"Height: {self.height}px"
+
+    height = models.IntegerField(validators=[MinValueValidator(10), deny_base_height], unique=True)      # available height of the image, minimum height is 10px
 
 
 class Tier(models.Model):
@@ -40,34 +40,6 @@ class Tier(models.Model):
         """
         query = self.available_heights.all().values_list("height", flat=True)
         return list(query)
-
-    # def save(self, *args, **kwargs) -> None:
-    #     """
-    #     Overriden to generate thumbnails when tier is extended
-    #     """
-    #     # if saving existing object
-    #     if not self._state.adding:
-    #         # compare current resolutions with old ones (still stored in db)
-    #         old_data = Tier.objects.get(pk=self.pk)
-
-    #         new_res = set(self.extra_image_sizes)              # currently available resolutions
-    #         old_res = set(old_data.extra_image_sizes)        # previously available resolutions
-    #         if new_res != old_res:
-    #             unavailable_res = new_res.difference(old_res)
-    #             for res in unavailable_res:
-    #                 images = self.uploadedimage_set.filter(parent=None)     # all original images
-    #                 for img in images:
-    #                     # check if image has thumbnail with requested size (maybe user returned to previous tier and file already exists)
-    #                     if res not in img.uploadedimage_set.all().values_list("height", flat=True):
-    #                         UploadedImage.objects.create(
-    #                             image = get_resized_image(img.image, res),
-    #                             owner = img.owner,
-    #                             title = img.title,
-    #                             parent = img,
-    #                         )
-
-    #     return super().save(*args, **kwargs)
-
 
 
 class User(AbstractUser):
