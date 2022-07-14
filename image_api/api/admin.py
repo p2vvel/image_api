@@ -41,7 +41,6 @@ class UploadedImageAdmin(admin.ModelAdmin):
 
 class AvailableHeightAdmin(admin.ModelAdmin):
     model = AvailableHeight
-    readonly_fields = ["height"]        # changing height in this model would be useless and make additional problems (generating new thumbnails)
     ordering = ["height"]
 
 
