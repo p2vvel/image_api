@@ -20,7 +20,7 @@ class UserAdmin(admin.ModelAdmin):
 class UploadedImageAdmin(admin.ModelAdmin):
     model = UploadedImage
     list_display = ["title", "view_owner", "height", "_original"]
-    readonly_fields = ["image_tag", "height", "parent", "owner", "title"]    # filled automatically
+    readonly_fields = ["image", "image_tag", "height", "parent", "owner", "title"]    # filled automatically
     list_filter = ["owner__username", ("parent", admin.EmptyFieldListFilter)]
 
     @admin.display(description="Owner")
@@ -35,7 +35,7 @@ class UploadedImageAdmin(admin.ModelAdmin):
 
     def image_tag(self, obj):
         """Get html img tag with image as src"""
-        return format_html(f'<img alt="{obj.title}" src="{obj.image.url}" height="300px">')
+        return format_html(f'<img alt="{obj.title}" src="{reverse("get_image", args=(obj.image.name, ))}" height="300px">')
 
 
 
