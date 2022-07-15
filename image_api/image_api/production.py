@@ -136,14 +136,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "api.User"
 
 # necessary for uploading files
-MEDIA_ROOT = "/images"
+MEDIA_ROOT = Path("/images")
 # MEDIA_URL = "images/"
 
 
 # X-SendFile config:
 SENDFILE_BACKEND = "django_sendfile.backends.nginx"
-SENDFILE_ROOT = '/images'
-SENDFILE_URL = '/protected'     # nginx decides about resources to send based on this url
+SENDFILE_ROOT = Path("/images")
+SENDFILE_URL = "/protected"     # nginx decides about resources to send based on this url
 
 
 CACHES = {
